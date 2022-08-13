@@ -63,7 +63,6 @@ int main() {
   readbmp("before.bmp", image);
 
   revert_colors(image);
-  grayscale(image);
 
   const uint scale_factor = 2;
   // Scale up equally in both directions
