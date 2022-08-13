@@ -65,7 +65,7 @@ int main() {
   revert_colors(image);
   grayscale(image);
 
-  const uint scale_factor = 3;
+  const uint scale_factor = 2;
   // Scale up equally in both directions
   uchar *new_image = calloc(TOT_SIZE * 2 * scale_factor, 1);
 
