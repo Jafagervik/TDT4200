@@ -39,13 +39,16 @@ void swap(real_t **m1, real_t **m2) {
 }
 
 int main(int argc, char **argv) {
-
+  printf("Even?");
   OPTIONS *options = parse_args(argc, argv);
+  printf("Here");
 
   if (!options) {
     fprintf(stderr, "Argument parsing failed\n");
     exit(1);
   }
+
+  printf("Yo");
 
   // TODO 1: Get N, max_iteration and snapshot_frequency from the options struct
   // and store the values in the global fields with the same names
@@ -85,14 +88,15 @@ int main(int argc, char **argv) {
   for (int_t i = 0; i <= max_iteration; i++) {
     // TODO 3a: Update the edges of the domain based on the boundary conditions
     // for PN and PNU.
+
+    // TODO: Find out if we should use N instead of max_iter
     PN(max_iteration + 1) = PN(max_iteration - 1);    // (7)
     PN(0) = PN(2);                                    // (8)
     PNU(0) = -PNU(2);                                 // (9)
     PNU(max_iteration + 1) = -PNU(max_iteration - 1); // (10)
 
     // TODO 3b: Update the acceleration over the entire domain and the borders
-    DU(i) =
-        PN(i) * U(i) * U(i) + 0.5 * gravity * (PN(i) * PN(i) / density); // (5)
+    DU(i) = PNU(i) * PNU(i) + 0.5 * gravity * (PN(i) * PN(i)); // (5)
 
     // TODO 3c: Update the next PNU over the entire domain
     PNU_next(i) =
@@ -113,6 +117,7 @@ int main(int argc, char **argv) {
     }
 
     // TODO 4: Implement  the swap function
+    // TODO: Check that the pointer swap method works
     swap(&mass[0], &mass[1]);
     swap(&mass_velocity_x[0], &mass_velocity_x[1]);
   }
