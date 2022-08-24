@@ -7,6 +7,8 @@
 
 #include "../inc/argument_utils.h"
 
+#define BUFSIZE 256
+
 typedef int64_t int_t;
 typedef double real_t;
 
@@ -55,14 +57,14 @@ int main(int argc, char **argv) {
   // There should be space for N+2 elements of the real_t type in each of the
   // arrays. The arrays should also be initialized to be filled with zeroes.
 
-  mass[0] = calloc(N + 2, sizeof(real_t));
-  mass[1] = calloc(N + 2, sizeof(real_t));
+  mass[0] = (real_t *)calloc(N + 2, sizeof(real_t));
+  mass[1] = (real_t *)calloc(N + 2, sizeof(real_t));
 
-  mass_velocity_x[0] = calloc(N + 2, sizeof(real_t));
-  mass_velocity_x[1] = calloc(N + 2, sizeof(real_t));
+  mass_velocity_x[0] = (real_t *)calloc(N + 2, sizeof(real_t));
+  mass_velocity_x[1] = (real_t *)calloc(N + 2, sizeof(real_t));
 
-  velocity_x = calloc(N + 2, sizeof(real_t));
-  acceleration_x = calloc(N + 2, sizeof(real_t));
+  velocity_x = (real_t *)calloc(N + 2, sizeof(real_t));
+  acceleration_x = (real_t *)calloc(N + 2, sizeof(real_t));
 
   // Data initialization
   for (int_t x = 1; x <= N; x++) {
@@ -131,8 +133,8 @@ int main(int argc, char **argv) {
 
 void domain_save(int_t iteration) {
   int_t index = iteration / snapshot_frequency;
-  char filename[256];
-  memset(filename, 0, 256 * sizeof(char));
+  char filename[BUFSIZE];
+  memset(filename, 0, BUFSIZE * sizeof(char));
   sprintf(filename, "data/%.5ld.bin", index);
 
   FILE *out = fopen(filename, "wb");
@@ -140,6 +142,6 @@ void domain_save(int_t iteration) {
     fprintf(stderr, "Failed to open file: %s\n", filename);
     exit(1);
   }
-  fwrite(&mass[0][1], sizeof(real_t), N, out);
+  fwrite(&PN(1), sizeof(real_t), N, out);
   fclose(out);
 }
