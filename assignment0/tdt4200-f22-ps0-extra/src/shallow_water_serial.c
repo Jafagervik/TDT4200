@@ -8,6 +8,7 @@
 #include "../inc/argument_utils.h"
 
 #define BUFSIZE 256
+#define DOMAIN_LOOP(x, n) for (x = 0; x < n + 2; x++)
 
 typedef int64_t int_t;
 typedef double real_t;
@@ -33,28 +34,24 @@ void swap(real_t **m1, real_t **m2) {
   real_t **temp = m1;
   m1 = m2;
   m2 = temp;
-
-  // Find out where to free temp?
-  // free(temp)
 }
 
 int main(int argc, char **argv) {
-  printf("Even?");
   OPTIONS *options = parse_args(argc, argv);
-  printf("Here");
 
   if (!options) {
     fprintf(stderr, "Argument parsing failed\n");
     exit(1);
   }
 
-  printf("Yo");
-
   // TODO 1: Get N, max_iteration and snapshot_frequency from the options struct
   // and store the values in the global fields with the same names
   N = options->N;
   max_iteration = options->max_iteration;
   snapshot_frequency = options->snapshot_frequency;
+  printf("N: %ld\n", N);
+  printf("Max iter: %ld\n", max_iteration);
+  printf("snapshot_frequency: %ld\n", snapshot_frequency);
 
   // TODO 2: Allocate memory for the mass, velocity and acceleration arrays.
   // There should be space for N+2 elements of the real_t type in each of the
@@ -86,28 +83,37 @@ int main(int argc, char **argv) {
   dt = 0.1 * dx;
 
   for (int_t i = 0; i <= max_iteration; i++) {
-    // TODO 3a: Update the edges of the domain based on the boundary conditions
-    // for PN and PNU.
+    //  TODO 3a: Update the edges of the domain based on the boundary conditions
+    //  for PN and PNU.
+    PN(N + 1) = PN(N - 1);    // (7)
+    PN(0) = PN(2);            // (8)
+    PNU(0) = -PNU(2);         // (9)
+    PNU(N + 1) = -PNU(N - 1); // (10)
 
-    // TODO: Find out if we should use N instead of max_iter
-    PN(max_iteration + 1) = PN(max_iteration - 1);    // (7)
-    PN(0) = PN(2);                                    // (8)
-    PNU(0) = -PNU(2);                                 // (9)
-    PNU(max_iteration + 1) = -PNU(max_iteration - 1); // (10)
+    int_t x;
 
     // TODO 3b: Update the acceleration over the entire domain and the borders
-    DU(i) = PNU(i) * PNU(i) + 0.5 * gravity * (PN(i) * PN(i)); // (5)
+    DOMAIN_LOOP(x, N) {
+      DU(x) = PN(x) * pow(U(x), 2.0) +
+              0.5 * gravity * (pow(PN(x), 2.0) / density); // (5)
+    }
 
     // TODO 3c: Update the next PNU over the entire domain
-    PNU_next(i) =
-        0.5 * (PNU(i + 1) + PNU(i - 1)) - dt / 2 * dx * (DU(i + 1) - DU(i - 1));
+    DOMAIN_LOOP(x, N) {
+      PNU_next(x) = 0.5 * (PNU(x + 1) + PNU(x - 1)) -
+                    dt / 2 * dx * (DU(x + 1) - DU(x - 1));
+    }
 
     // TODO 3d: Update the next PN over the entire domain
-    PN_next(i) =
-        0.5 * (PN(i + 1) + PN(i - 1)) - dt / 2 * dx * (PNU(i + 1) - PNU(i - 1));
+    DOMAIN_LOOP(x, N) {
+      PN_next(x) = 0.5 * (PN(x + 1) + PN(x - 1)) -
+                   dt / 2 * dx * (PNU(x + 1) - PNU(x - 1));
+    }
 
     // TODO 3e: Update the U over the entire domain
-    U(i) = PNU(i) / PN(i); // (6)
+    DOMAIN_LOOP(x, N) {
+      U(x) = PNU(x) / PN(x); // (6)
+    }
 
     if (i % snapshot_frequency == 0) {
       printf("Iteration %ld of %ld (%.2lf%% complete)\n", i, max_iteration,
@@ -117,7 +123,6 @@ int main(int argc, char **argv) {
     }
 
     // TODO 4: Implement  the swap function
-    // TODO: Check that the pointer swap method works
     swap(&mass[0], &mass[1]);
     swap(&mass_velocity_x[0], &mass_velocity_x[1]);
   }
@@ -126,10 +131,8 @@ int main(int argc, char **argv) {
   free(options);
   free(mass[0]);
   free(mass[1]);
-  // free(mass);
   free(mass_velocity_x[0]);
   free(mass_velocity_x[1]);
-  // free(mass_velocity_x);
   free(velocity_x);
   free(acceleration_x);
 
