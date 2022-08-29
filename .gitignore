@@ -55,3 +55,6 @@ dkms.conf
 # Assignment 1
 **/assignment0/bitmap
 **/assignment0/after.bmp
+
+# Pensum
+pensum.pdf
